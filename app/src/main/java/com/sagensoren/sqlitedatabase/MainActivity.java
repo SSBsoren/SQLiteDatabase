@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    DatabaseHelper muDB;
+    DatabaseHelper myDB;
     EditText editTextId,editName,editEmail,editCC;
     Button buttonAdd, buttonGetData, buttonUpdate,buttonDelete,buttonViewAll;
 
@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        muDB = new DatabaseHelper(this);
+        myDB = new DatabaseHelper(this);
         editTextId = findViewById(R.id.editText_id);
         editName = findViewById(R.id.editText_name);
         editEmail = findViewById(R.id.editText_email);
@@ -37,14 +37,16 @@ public class MainActivity extends AppCompatActivity {
         /*showMessage("test","testing done");*/
         AddData();
         getData();
-
+        viewAll();
+        updateData();
+        deleteData();
     }
 
     public void AddData(){
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean isInserted = muDB.insertData(editName.getText().toString()
+                boolean isInserted = myDB.insertData(editName.getText().toString()
                         ,editEmail.getText().toString()
                         ,editCC.getText().toString());
 
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     editTextId.setError("Enter ID");
                     return;
                 }
-                Cursor cursor = muDB.getData(id);
+                Cursor cursor = myDB.getData(id);
                 String data = null;
 
                 if (cursor.moveToNext()){
@@ -89,7 +91,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    
+    public void viewAll(){
+        buttonViewAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+               Cursor cursor = myDB.getAllData();
+               if (cursor.getCount() == 0){
+                   showMessage("Error","Nothing found in DB");
+                   return;
+               }
+
+               StringBuffer buffer = new StringBuffer();
+               while (cursor.moveToNext()){
+                   buffer.append("ID: "+cursor.getString(0)+"\n");
+                   buffer.append("Name: "+cursor.getString(1)+"\n");
+                   buffer.append("Email: "+cursor.getString(2)+"\n");
+                   buffer.append("CC: "+cursor.getString(3)+"\n\n");
+               }
+               showMessage("All data", buffer.toString());
+
+            }
+        });
+    }
+
+    public void updateData(){
+        buttonUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isUpdate = myDB.updateData(editTextId.getText().toString(),
+                        editName.getText().toString(),
+                        editEmail.getText().toString(),
+                        editCC.getText().toString());
+
+                if (isUpdate  == true){
+                    Toast.makeText(MainActivity.this,"Update succesfully", Toast.LENGTH_SHORT).show();
+                }else
+                {
+                    Toast.makeText(MainActivity.this,"OOPS!",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+
+    public void deleteData(){
+        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer deletedRow  = myDB.deleteData(editTextId.getText().toString());
+                if (deletedRow > 0){
+                    Toast.makeText(MainActivity.this,"Delete Success",Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this,"OOPS !",Toast.LENGTH_SHORT).show();
+
+                }
+
+            }
+        });
+    }
 
     private void showMessage(String title, String message){
 
